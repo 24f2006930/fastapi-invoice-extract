@@ -1,20 +1,16 @@
 # FastAPI Invoice Field Extractor
 
-A FastAPI service that extracts vendor, amount, currency, and due date from free-form invoice text and validates the response using a Pydantic model.
+A FastAPI service that extracts structured invoice fields from free-form text and validates the response using Pydantic. Deployed on Render.
 
-## Repository name
-
-`fastapi-invoice-extract`
-
-## Repository description
-
-FastAPI invoice extraction API with Pydantic-validated vendor, amount, currency, and due-date fields, plus safe validation errors for malformed input.
+**Live endpoint:** https://fastapi-invoice-extract.onrender.com/extract
 
 ## Endpoint
 
-`POST /extract`
+### `POST /extract`
 
-Request:
+Accepts invoice text in a JSON request body.
+
+**Request example:**
 
 ```json
 {
@@ -22,7 +18,7 @@ Request:
 }
 ```
 
-Example response:
+**Response example:**
 
 ```json
 {
@@ -33,20 +29,58 @@ Example response:
 }
 ```
 
-The service extracts values from each submitted text rather than returning hard-coded invoice data. The response model validates the currency code and ISO date format. Empty or unparseable input returns HTTP 422 rather than HTTP 500.
+## Extracted Fields
 
-## Implementation note
+- **`vendor`** — vendor name extracted from the invoice text.
+- **`amount`** — total amount due as a number.
+- **`currency`** — uppercase, three-letter currency code, such as `USD`, `EUR`, or `GBP`.
+- **`date`** — payment due date in `YYYY-MM-DD` format.
 
-This deployable starter uses deterministic text extraction and Pydantic validation. It does not call an LLM runtime. If the assignment environment specifically requires inference through a local LLM, deploy the model runtime separately (for example, Ollama) and connect the API to it; a hosted web service cannot access a model running only on your personal computer unless you expose that runtime securely.
+The service processes each submitted invoice dynamically rather than returning hard-coded sample values.
 
-## Deploy on Render
+## Validation and Error Handling
 
-Create a Blueprint from this repository using `render.yaml`. Verify `STUDENT_EMAIL` matches the email shown by the assignment.
+The response uses a Pydantic model to validate the output structure and field formats.
 
-## Quick test
+- Valid invoice text returns HTTP `200 OK`.
+- Empty input returns HTTP `422 Unprocessable Entity`.
+- Unparseable invoice text returns HTTP `422` rather than HTTP `500`.
+
+## Implementation
+
+The current implementation uses deterministic text extraction with regular expressions and Pydantic validation. It does **not** invoke a local LLM runtime.
+
+## Deployment
+
+The service is deployed on Render using a Blueprint configuration in `render.yaml`.
+
+## Quick Test
+
+Run the following command in a terminal:
 
 ```bash
-curl -i -X POST "https://YOUR-SERVICE.onrender.com/extract" \
+curl -i -X POST "https://fastapi-invoice-extract.onrender.com/extract" \
   -H "Content-Type: application/json" \
   -d '{"text":"Vendor: Acme-1234 Industries Ltd. Total Due: USD 1250.50 Payment Due Date: 2026-08-21"}'
+```
+
+Expected output:
+
+```json
+{
+  "vendor": "Acme-1234 Industries Ltd.",
+  "amount": 1250.5,
+  "currency": "USD",
+  "date": "2026-08-21"
+}
+```
+
+## Project Structure
+
+```text
+fastapi-invoice-extract/
+├── main.py
+├── requirements.txt
+├── render.yaml
+└── README.md
 ```
