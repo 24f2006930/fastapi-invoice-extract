@@ -31,7 +31,7 @@ async def root():
 def extract_invoice(text: str) -> InvoiceFields:
     # Prefer explicit invoice labels, then use conservative fallbacks.
     vendor_patterns = [
-        r"(?im)^\s*(?:vendor|supplier|seller|from|issued\s+by)\s*[:\-]\s*(.+?)\s*$",
+        r"(?i)\b(?:vendor|supplier|seller|from|issued\s+by)\s*[:\-]\s*(.+?)(?=\s+(?:total\s+due|amount\s+due|grand\s+total|invoice\s+total|total|payment\s+due\s+date|due\s+date|pay\s+by)\b|[\r\n]|$)",
         r"(?i)\b([A-Z][A-Za-z0-9&.,'()\- ]{1,100}?\b(?:Industries|Industry|Ltd\.?|Limited|Inc\.?|LLC|Corp\.?|Corporation|Company|Co\.))\b",
     ]
     vendor = None
